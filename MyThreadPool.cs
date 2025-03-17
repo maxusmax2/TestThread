@@ -15,9 +15,11 @@ public class MyThreadPool
         _workThread.Start();
     }
 
-    public void AddAction(Action action, CancellationToken cancellationToken = default)
+    public Future AddAction(Action action, CancellationToken cancellationToken = default)
     {
-        _workQueue.Enqueue(new ActionWrapper(action, cancellationToken));
+        var future = new Future();
+        _workQueue.Enqueue(new ActionWrapper(action, future, cancellationToken));
+        return future;
     }
 
     private void Worker()
@@ -26,9 +28,10 @@ public class MyThreadPool
         {
             if (_workQueue.TryDequeue(out var task))
             {
-                if (!task.CancellationToken.IsCancellationRequested) 
+                if (!task.CancellationToken.IsCancellationRequested)
                 {
                     task.Action.Invoke();
+                    task.Future.Come(this, EventArgs.Empty);
                 }
             }
             else
@@ -44,12 +47,23 @@ public class MyThreadPool
         public Action Action { get; init; }
         public Guid CallbackId { get; init; }
         public CancellationToken CancellationToken { get; init; }
+        public Future Future;
 
-        public ActionWrapper(Action action, CancellationToken cancellationToken)
+        public ActionWrapper(Action action, Future future, CancellationToken cancellationToken)
         {
             Action = action;
             CallbackId = Guid.NewGuid();
             CancellationToken = cancellationToken;
+            Future = future;
+        }
+    }
+    public class Future
+    {
+        public event EventHandler<EventArgs> Finished;
+
+        internal void Come(object sender, EventArgs args)
+        {
+            Finished.Invoke(sender, args);
         }
     }
 }
