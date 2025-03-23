@@ -12,6 +12,7 @@ public class MyThreadPool
         _workQueue = new ConcurrentQueue<ActionWrapper>();
         _ct = cancellationToken;
         _workThread = new Thread(Worker);
+        _workThread.IsBackground = false;
         _workThread.Start();
     }
 

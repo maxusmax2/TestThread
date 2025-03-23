@@ -1,7 +1,6 @@
 ﻿using TestThread;
 
-var cts = new CancellationTokenSource();
-var ct = cts.Token;
+
 var threadPool = new MyThreadPool();
 
 for (var i = 0; i < 100; i++)
@@ -11,11 +10,31 @@ for (var i = 0; i < 100; i++)
         i++;
         Console.WriteLine(i);
         Thread.Sleep(1);
-    }, cts.Token);
+    }, CancellationToken.None);
     f.Finished += (o, a) => { Console.WriteLine($"Done {i}"); }; ;
 }
 Console.WriteLine("Hello World!");
 Thread.Sleep(1000);
-cts.Cancel();
 
 Console.ReadLine();
+
+var executionId = Guid.NewGuid();
+var cts = new CancellationTokenSource();
+var ct = cts.Token;
+AsyncLocal<Guid> local = new()
+{
+    Value = executionId
+};
+cts.Cancel();
+Console.WriteLine($"Main thread ExecutionID: {local.Value}");
+ThreadPool.UnsafeQueueUserWorkItem(_ =>
+{
+    ct.ThrowIfCancellationRequested();
+    Console.WriteLine($"New1 thread ExecutionID: {local.Value}");
+}, null);
+ThreadPool.QueueUserWorkItem(_ =>
+{
+    ct.ThrowIfCancellationRequested();
+    Console.WriteLine($"New2 thread ExecutionID: {local.Value}");
+}, null);
+Console.ReadKey();
