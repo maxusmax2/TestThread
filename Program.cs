@@ -4,17 +4,16 @@ var threadPool = new MyThreadPool();
 
 for (var i = 0; i < 100; i++)
 {
-    var f = threadPool.AddAction(() =>
+    var f = threadPool.AddAction(async () =>
     {
         i++;
+        await MyTask.Delay(5000);
         Console.WriteLine(i);
-        Thread.Sleep(1);
     }, CancellationToken.None);
     f.Finished += (o, a) => { Console.WriteLine($"Done {i}"); }; ;
 }
 Console.WriteLine("Hello World!");
 Thread.Sleep(1000);
-
 Console.ReadLine();
 
 var executionId = Guid.NewGuid();
