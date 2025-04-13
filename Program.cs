@@ -1,6 +1,5 @@
 ﻿using TestThread;
 
-
 var threadPool = new MyThreadPool();
 
 for (var i = 0; i < 100; i++)

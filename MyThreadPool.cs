@@ -31,7 +31,9 @@ public class MyThreadPool
             {
                 if (!task.CancellationToken.IsCancellationRequested)
                 {
+                    Console.WriteLine($"Action start. Id = {task.CallbackId}");
                     task.Action.Invoke();
+                    Console.WriteLine($"Action finished. Id = {task.CallbackId}");
                     task.Future.Come(this, EventArgs.Empty);
                 }
             }
