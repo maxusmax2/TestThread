@@ -1,5 +1,14 @@
 ﻿using TestThread;
 
+var taskLoop = new TaskLoop
+{
+    A = () => Console.WriteLine($"After delay {Thread.CurrentThread.ManagedThreadId}"),
+    Max = 5
+};
+Console.WriteLine($"Hello World {Thread.CurrentThread.ManagedThreadId}");
+taskLoop.Run();
+taskLoop.Task.Wait();
+
 var threadPool = new MyThreadPool();
 
 for (var i = 0; i < 100; i++)
@@ -35,4 +44,6 @@ ThreadPool.QueueUserWorkItem(_ =>
     ct.ThrowIfCancellationRequested();
     Console.WriteLine($"New2 thread ExecutionID: {local.Value}");
 }, null);
+
+
 Console.ReadKey();
