@@ -1,49 +1,19 @@
 ﻿using TestThread;
+var context = new MyCustomSynchronizationContext();
 
-var taskLoop = new TaskLoop
+var thread = new Thread(() =>
 {
-    A = () => Console.WriteLine($"After delay {Thread.CurrentThread.ManagedThreadId}"),
-    Max = 5
-};
-Console.WriteLine($"Hello World {Thread.CurrentThread.ManagedThreadId}");
-taskLoop.Run();
-taskLoop.Task.Wait();
+    // Устанавливаем контекст для этого потока
+    SynchronizationContext.SetSynchronizationContext(context);
 
-var threadPool = new MyThreadPool();
+    // Запускаем loop обработки задач
+    context.Run(); // <<< ВОТ ЗДЕСЬ мы явно его вызываем
+    Console.WriteLine("Thread завершён");
+});
 
-for (var i = 0; i < 100; i++)
-{
-    var f = threadPool.AddAction(async () =>
-    {
-        i++;
-        await MyTask.Delay(5000);
-        Console.WriteLine(i);
-    }, CancellationToken.None);
-    f.Finished += (o, a) => { Console.WriteLine($"Done {i}"); }; ;
-}
-Console.WriteLine("Hello World!");
-Thread.Sleep(1000);
-Console.ReadLine();
+context.Post((x) => Console.WriteLine("Work in sync context" + x), 42);
+context.Post((x) => Console.WriteLine("Work in sync context" + x), 73);
 
-var executionId = Guid.NewGuid();
-var cts = new CancellationTokenSource();
-var ct = cts.Token;
-AsyncLocal<Guid> local = new()
-{
-    Value = executionId
-};
-cts.Cancel();
-Console.WriteLine($"Main thread ExecutionID: {local.Value}");
-ThreadPool.UnsafeQueueUserWorkItem(_ =>
-{
-    ct.ThrowIfCancellationRequested();
-    Console.WriteLine($"New1 thread ExecutionID: {local.Value}");
-}, null);
-ThreadPool.QueueUserWorkItem(_ =>
-{
-    ct.ThrowIfCancellationRequested();
-    Console.WriteLine($"New2 thread ExecutionID: {local.Value}");
-}, null);
+thread.Start();
 
-
-Console.ReadKey();
+thread.Join();
