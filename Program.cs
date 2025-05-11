@@ -1,19 +1,9 @@
-﻿using TestThread;
-var context = new MyCustomSynchronizationContext();
-
-var thread = new Thread(() =>
+﻿using static System.Console;
+using TestThread;
+class Program
 {
-    // Устанавливаем контекст для этого потока
-    SynchronizationContext.SetSynchronizationContext(context);
-
-    // Запускаем loop обработки задач
-    context.Run(); // <<< ВОТ ЗДЕСЬ мы явно его вызываем
-    Console.WriteLine("Thread завершён");
-});
-
-context.Post((x) => Console.WriteLine("Work in sync context" + x), 42);
-context.Post((x) => Console.WriteLine("Work in sync context" + x), 73);
-
-thread.Start();
-
-thread.Join();
+    static async Task Main(string[] args)
+    {
+        Console.WriteLine(await (await await false && await true)); 
+    }
+}
