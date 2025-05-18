@@ -2,14 +2,14 @@
 
 namespace TestThread;
 
-public class SingleThreadSynchronizationContext : SynchronizationContext
+public class MySynchronizationContext : SynchronizationContext
 {
     private readonly ConcurrentQueue<HandlerWithData> _queue =
         new ConcurrentQueue<HandlerWithData>();
 
     private readonly Thread _thread;
 
-    public SingleThreadSynchronizationContext()
+    public MySynchronizationContext()
     {
         _thread = new Thread(RunOnCurrentThread)
         {
@@ -59,6 +59,7 @@ public class SingleThreadSynchronizationContext : SynchronizationContext
 
     private void RunOnCurrentThread()
     {
+        SetSynchronizationContext(this);
         while (true) 
         {
             if (_queue.Count > 0)
